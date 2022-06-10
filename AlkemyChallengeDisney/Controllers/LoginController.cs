@@ -1,6 +1,6 @@
 ﻿using AlkemyChallengeDisney.Request;
 using AlkemyChallengeDisney.Response;
-using AlkemyChallengeDisney.Services;
+using AlkemyChallengeDisney.Services.Interfaces;
 using AlkemyChallengeDisney.UOfWork;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

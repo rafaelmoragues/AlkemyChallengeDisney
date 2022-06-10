@@ -1,6 +1,7 @@
 ﻿using AlkemyChallengeDisney.Models;
 using AlkemyChallengeDisney.Request;
 using AlkemyChallengeDisney.Response;
+using AlkemyChallengeDisney.Services.Interfaces;
 using AlkemyChallengeDisney.UOfWork;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

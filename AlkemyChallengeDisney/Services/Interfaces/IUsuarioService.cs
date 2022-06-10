@@ -1,7 +1,7 @@
 ﻿using AlkemyChallengeDisney.Request;
 using AlkemyChallengeDisney.Response;
 
-namespace AlkemyChallengeDisney.Services
+namespace AlkemyChallengeDisney.Services.Interfaces
 {
     public interface IUsuarioService
     {

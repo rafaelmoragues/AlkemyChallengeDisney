@@ -13,6 +13,7 @@ namespace AlkemyChallengeDisney.Profiles
             CreateMap<Usuario, UserResponse>()
                 .ForMember(dest => dest.UserName , opt => opt.MapFrom(src => src.Name));
             CreateMap<Personaje, PersonajeResponse>();
+            CreateMap<Pelicula, PeliculaResponse>();
         }
     }
 }
