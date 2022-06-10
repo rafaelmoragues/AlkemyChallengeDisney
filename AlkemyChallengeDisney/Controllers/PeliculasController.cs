@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AlkemyChallengeDisney.Data;
 using AlkemyChallengeDisney.Models;
+using AlkemyChallengeDisney.Services.Interfaces;
+using AlkemyChallengeDisney.UOfWork;
 
 namespace AlkemyChallengeDisney.Controllers
 {
@@ -14,33 +16,54 @@ namespace AlkemyChallengeDisney.Controllers
     [ApiController]
     public class PeliculasController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IPeliculaService _peliculaService;
+        private readonly IUnitOfWork _uow;
 
-        public PeliculasController(ApplicationDbContext context)
+        public PeliculasController(IPeliculaService peliculaService, IUnitOfWork uow)
         {
-            _context = context;
+            _peliculaService = peliculaService;
+            _uow = uow;
         }
 
         // GET: api/Peliculas
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Pelicula>>> GetPeliculas()
+        public ActionResult<IEnumerable<Pelicula>> GetPeliculas([FromQuery] string? name, [FromQuery] string? order, [FromQuery] int? genre)
         {
-          if (_context.Peliculas == null)
+          if (_uow.PeliculaRepo == null)
           {
               return NotFound();
           }
-            return await _context.Peliculas.ToListAsync();
+            if (name != null)
+            {
+                return Ok(_peliculaService.GetPeliculasCustom("name", name));
+            }
+            else if (order != null)
+            {
+                if (order == "asc")
+                {
+                    return Ok(_peliculaService.GetPeliculasCustom("asc", order));
+                }
+                if(order == "desc")
+                {
+                    return Ok(_peliculaService.GetPeliculasCustom("desc", order));
+                }
+            }
+            else if (genre != null)
+            {
+                return Ok(_peliculaService.GetPeliculasCustom("genre", genre));
+            }
+            return Ok(_peliculaService.GetPeliculas());
         }
 
         // GET: api/Peliculas/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Pelicula>> GetPelicula(int id)
+        public ActionResult<Pelicula> GetPelicula(int id)
         {
-          if (_context.Peliculas == null)
+          if (_uow.PeliculaRepo == null)
           {
               return NotFound();
           }
-            var pelicula = await _context.Peliculas.FindAsync(id);
+            var pelicula = _uow.PeliculaRepo.GetById(id);
 
             if (pelicula == null)
             {
@@ -53,30 +76,14 @@ namespace AlkemyChallengeDisney.Controllers
         // PUT: api/Peliculas/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPelicula(int id, Pelicula pelicula)
+        public IActionResult PutPelicula(int id, Pelicula pelicula)
         {
             if (id != pelicula.Id)
             {
                 return BadRequest();
             }
-
-            _context.Entry(pelicula).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!PeliculaExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            _uow.PeliculaRepo.Update(pelicula);
+            _uow.Save();            
 
             return NoContent();
         }
@@ -84,41 +91,37 @@ namespace AlkemyChallengeDisney.Controllers
         // POST: api/Peliculas
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Pelicula>> PostPelicula(Pelicula pelicula)
+        public ActionResult<Pelicula> PostPelicula(Pelicula pelicula)
         {
-          if (_context.Peliculas == null)
+          if (_uow.PeliculaRepo == null)
           {
-              return Problem("Entity set 'ApplicationDbContext.Peliculas'  is null.");
+                return BadRequest();
           }
-            _context.Peliculas.Add(pelicula);
-            await _context.SaveChangesAsync();
+            _uow.PeliculaRepo.Insert(pelicula);
+            _uow.Save();
 
-            return CreatedAtAction("GetPelicula", new { id = pelicula.Id }, pelicula);
+            return Ok();
         }
 
         // DELETE: api/Peliculas/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePelicula(int id)
+        public IActionResult DeletePelicula(int id)
         {
-            if (_context.Peliculas == null)
+            if (_uow.PeliculaRepo == null)
             {
                 return NotFound();
             }
-            var pelicula = await _context.Peliculas.FindAsync(id);
+            var pelicula = _uow.PeliculaRepo.GetById(id);
             if (pelicula == null)
             {
                 return NotFound();
             }
 
-            _context.Peliculas.Remove(pelicula);
-            await _context.SaveChangesAsync();
+            _uow.PeliculaRepo.Delete(id);
+            _uow.Save();
 
             return NoContent();
         }
 
-        private bool PeliculaExists(int id)
-        {
-            return (_context.Peliculas?.Any(e => e.Id == id)).GetValueOrDefault();
-        }
     }
 }
