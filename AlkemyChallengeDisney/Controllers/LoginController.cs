@@ -4,6 +4,7 @@ using AlkemyChallengeDisney.Services.Interfaces;
 using AlkemyChallengeDisney.UOfWork;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using AlkemyChallengeDisney.SendGrid;
 
 namespace AlkemyChallengeDisney.Controllers
 {
@@ -35,13 +36,14 @@ namespace AlkemyChallengeDisney.Controllers
             });
         }
         [HttpPost("register")]
-        public ActionResult RegistrarUsuario([FromBody] RegisterRequest user)
+        public async Task<ActionResult> RegistrarUsuario([FromBody] RegisterRequest user)
         {
             if (_uow.UsuarioRepo.ExisteUsuario(user.Email.ToLower()))
             {
                 return BadRequest("Ya existe un cuenta asociada a ese Email");
             }
             UserResponse res = _usuarioService.Registrar(user, user.Password);
+            await EmailSender.SendEmailAsync(user.Email, user.Name);
             return Ok(res);
         }
     }
