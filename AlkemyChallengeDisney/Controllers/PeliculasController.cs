@@ -29,30 +29,14 @@ namespace AlkemyChallengeDisney.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Pelicula>> GetPeliculas([FromQuery] string? name, [FromQuery] string? order, [FromQuery] int? genre)
         {
-          if (_uow.PeliculaRepo == null)
-          {
-              return NotFound();
-          }
-            if (name != null)
+            return (name, order, genre) switch
             {
-                return Ok(_peliculaService.GetPeliculasCustom("name", name));
-            }
-            else if (order != null)
-            {
-                if (order == "asc")
-                {
-                    return Ok(_peliculaService.GetPeliculasCustom("asc", order));
-                }
-                if(order == "desc")
-                {
-                    return Ok(_peliculaService.GetPeliculasCustom("desc", order));
-                }
-            }
-            else if (genre != null)
-            {
-                return Ok(_peliculaService.GetPeliculasCustom("genre", genre));
-            }
-            return Ok(_peliculaService.GetPeliculas());
+                (not null, null, null) => Ok(_peliculaService.GetPeliculasCustom("name", name)),
+                (null, "asc", null) => Ok(_peliculaService.GetPeliculasCustom("asc", order)),
+                (null, "desc", null) => Ok(_peliculaService.GetPeliculasCustom("desc", order)),
+                (null, null, not null) => Ok(_peliculaService.GetPeliculasCustom("genre", genre)),
+                _ => Ok(_peliculaService.GetPeliculas()),
+            };
         }
 
         // GET: api/Peliculas/5

@@ -39,23 +39,14 @@ namespace AlkemyChallengeDisney.Controllers
         [HttpGet("")]
         public ActionResult<IEnumerable<Personaje>> GetPersonajesCustom([FromQuery] string? name, [FromQuery] int? age, [FromQuery] int? movies)
         {
-            if (_uow.PersonajeRepo == null)
+            return (name, age, movies) switch
             {
-                return NotFound();
-            }
-            if(name != null)
-            {
-                return Ok(_personajeService.GetPersonajesCustom("name",name));
-            }
-            else if(age != null)
-            {
-                return Ok(_personajeService.GetPersonajesCustom("age",age));
-            }
-            else if(movies != null)
-            {
-                return Ok(_personajeService.GetPersonajesCustom("movies", movies));
-            }
-            return Ok(_personajeService.GetPersonajes());
+                (not null, null, null) => Ok(_personajeService.GetPersonajesCustom("name", name)),
+                (null, not null, null) => Ok(_personajeService.GetPersonajesCustom("age", age)),
+                (null, null, not null) => Ok(_personajeService.GetPersonajesCustom("movies", movies)),
+                _ => Ok(_personajeService.GetPersonajes()),
+            };
+            
         }
 
         // GET: api/Personajes/5

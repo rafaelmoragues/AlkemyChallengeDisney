@@ -19,53 +19,47 @@ namespace AlkemyChallengeDisney.Services
         {
             List<Pelicula> listP = _uow.PeliculaRepo.GetAll().ToList();
             List<PeliculaResponse> auxList = new List<PeliculaResponse>();
-            auxList = MapearPResponse(listP);
+            auxList = _mapper.Map<List<PeliculaResponse>>(listP);
             return auxList;
         }
 
-        public IEnumerable<PeliculaResponse> GetPeliculasCustom(string campo, object filtro)
+        public IEnumerable<PeliculaResponse> GetPeliculasCustom(string campo, object filtro) =>
+
+            campo switch
+            {
+                "name" => GetListByName(filtro),
+                "genre" => GetListByGenre(filtro),
+                "asc" => GetListByAsc(filtro),
+                "desc" => GetListByDesc(filtro),
+                _ => throw new ArgumentException("Invalid string value for campo", nameof(campo)),
+
+            };
+        private List<PeliculaResponse> GetListByName(object filtro)
         {
-            List<PeliculaResponse> responseList = new List<PeliculaResponse>();
-            List<Pelicula> peliculaList = new List<Pelicula>();
-
-            if (campo == "name")
-            {
-                string nombre = filtro.ToString();
-                peliculaList = _uow.PeliculaRepo.find(x => x.Title == nombre).ToList();
-            }
-            else if (campo == "genre")
-            {
-                int idGenero = (int)filtro;
-                var lista = _uow.PeliculaRepo.GetAll();
-                peliculaList = (from p in lista
-                                where p.generosList.Where(x => x.Id == idGenero).Count() > 0
-                                select p).ToList();
-            }
-            else if (campo == "asc")
-            {
-                responseList = (List<PeliculaResponse>)GetPeliculas().OrderBy(x => x.ReleaseDate);
-                return responseList;
-            }
-            else if (campo == "desc")
-            {
-                responseList = (List<PeliculaResponse>)GetPeliculas().OrderByDescending(x =>x.ReleaseDate);
-                return responseList;
-            }
-
-            responseList = MapearPResponse(peliculaList);
+            string nombre = filtro.ToString();
+            List<Pelicula> peliculaList = _uow.PeliculaRepo.find(x => x.Title == nombre).ToList();
+            List<PeliculaResponse> responseList = _mapper.Map<List<PeliculaResponse>>(peliculaList);
             return responseList;
         }
-
-        private List<PeliculaResponse> MapearPResponse(List<Pelicula> list)
+        private List<PeliculaResponse> GetListByGenre(object filtro)
         {
-            List<PeliculaResponse> auxList = new List<PeliculaResponse>();
-            PeliculaResponse aux;
-            foreach (var p in list)
-            {
-                aux = _mapper.Map<PeliculaResponse>(p);
-                auxList.Add(aux);
-            }
-            return auxList;
+            int idGenero = (int)filtro;
+            var lista = _uow.PeliculaRepo.GetAll();
+            List<Pelicula> peliculaList = (from p in lista
+                                           where p.generosList.Where(x => x.Id == idGenero).Count() > 0
+                                           select p).ToList();
+            List<PeliculaResponse> responseList = _mapper.Map<List<PeliculaResponse>>(peliculaList);
+            return responseList;
+        }
+        private List<PeliculaResponse> GetListByAsc(object filtro)
+        {
+            List<PeliculaResponse> responseList = (List<PeliculaResponse>)GetPeliculas().OrderBy(x => x.ReleaseDate);
+            return responseList;
+        }
+        private List<PeliculaResponse> GetListByDesc(object filtro)
+        {
+            List<PeliculaResponse> responseList = (List<PeliculaResponse>)GetPeliculas().OrderByDescending(x => x.ReleaseDate);
+            return responseList;
         }
     }
 }

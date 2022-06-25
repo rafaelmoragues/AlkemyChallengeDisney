@@ -19,6 +19,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => {
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IPersonajeService, PersonajeService>();
+builder.Services.AddScoped<IPeliculaService, PeliculaService>();
 builder.Services.AddControllers().AddJsonOptions(x =>
 {
     x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());

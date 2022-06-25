@@ -19,46 +19,46 @@ namespace AlkemyChallengeDisney.Services
         {
             List<Personaje> listP = _uow.PersonajeRepo.GetAll().ToList();
             List<PersonajeResponse> auxList = new List<PersonajeResponse>();
-            auxList = MapearPResponse(listP);
+            auxList = _mapper.Map<List<PersonajeResponse>>(listP);
             return auxList;
         }
-        public IEnumerable<PersonajeResponse> GetPersonajesCustom(string campo, object filtro)
+        public IEnumerable<PersonajeResponse> GetPersonajesCustom(string campo, object filtro)=>
+            campo switch
+            {
+                "name" => GetListByName(filtro),
+                "movie" => GetListByMovie(filtro),
+                "age" => GetListByAge(filtro),
+                _ => throw new ArgumentException("Invalid string value for campo", nameof(campo)),
+            };
+            
+
+        
+        private List<PersonajeResponse> GetListByName(object filtro)
         {
+            string nombre = filtro.ToString();
+            List<Personaje> personajeList = _uow.PersonajeRepo.find(x => x.Name == nombre).ToList();
             List<PersonajeResponse> responseList = new List<PersonajeResponse>();
-            List<Personaje> personajeList = new List<Personaje>();
-
-            if (campo == "name")
-            {
-                string nombre = filtro.ToString();
-                personajeList = _uow.PersonajeRepo.find(x => x.Name == nombre).ToList();
-            }
-            else if(campo == "movie")
-            {
-                int idMovie = (int)filtro;
-                var lista = _uow.PersonajeRepo.GetAll();
-                personajeList = (from p in lista
-                         where p.PeliculasList.Where(x=>x.Id == idMovie).Count() > 0
-                         select p).ToList();
-            }
-            else if (campo == "age")
-            {
-                int age = (int)filtro;
-                personajeList = _uow.PersonajeRepo.find(x => x.Age == age).ToList();
-            }
-
-            responseList = MapearPResponse(personajeList);
+            responseList = _mapper.Map<List<PersonajeResponse>>(personajeList);
             return responseList;
         }
-        private List<PersonajeResponse> MapearPResponse(List<Personaje> list)
+        private List<PersonajeResponse> GetListByAge(object filtro)
         {
-            List<PersonajeResponse> auxList = new List<PersonajeResponse>();
-            PersonajeResponse aux;
-            foreach (var p in list)
-            {
-                aux = _mapper.Map<PersonajeResponse>(p);
-                auxList.Add(aux);
-            }
-            return auxList;
+            int age = (int)filtro;
+            List<Personaje> personajeList = _uow.PersonajeRepo.find(x => x.Age == age).ToList();
+            List<PersonajeResponse> responseList = new List<PersonajeResponse>();
+            responseList = _mapper.Map<List<PersonajeResponse>>(personajeList);
+            return responseList;
+        }
+        private List<PersonajeResponse> GetListByMovie(object filtro)
+        {
+            int idMovie = (int)filtro;
+            var lista = _uow.PersonajeRepo.GetAll();
+            List<Personaje> personajeList = (from p in lista
+                             where p.PeliculasList.Where(x => x.Id == idMovie).Count() > 0
+                             select p).ToList();
+            List<PersonajeResponse> responseList = new List<PersonajeResponse>();
+            responseList = _mapper.Map<List<PersonajeResponse>>(personajeList);
+            return responseList;
         }
     }
 }
